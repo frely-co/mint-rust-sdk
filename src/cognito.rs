@@ -1,7 +1,9 @@
 use reqwest::blocking::Client;
 use thiserror::Error;
 
-use crate::models::{AuthParameters, AuthRequest, AuthResponse, SignUpRequest, SignUpResponse};
+use crate::models::{
+    AdminInitiateAuthRequest, AdminInitiateAuthResponse, SignUpRequest, SignUpResponse
+};
 
 /// CognitoClient for interacting with the Cognito mock API.
 pub struct CognitoClient {
@@ -69,27 +71,33 @@ impl CognitoClient {
     }
 
     /// Authenticate a user.
-    pub fn authenticate(&self, username: &str, password: &str) -> Result<String, MINTError> {
-        let payload = AuthRequest {
+    pub fn admin_initiate_auth(&self, username: &str, password: &str) -> Result<AdminInitiateAuthResponse, MINTError> {
+        let mut auth_parameters = ::std::collections::HashMap::new();
+        auth_parameters.insert("USERNAME".to_string(), username.to_string());
+        auth_parameters.insert("PASSWORD".to_string(), password.to_string());
+
+        let payload = AdminInitiateAuthRequest {
             client_id: self.client_id.clone(),
             auth_flow: "USER_PASSWORD_AUTH".to_string(),
-            auth_parameters: AuthParameters {
-                username: username.to_string(),
-                password: password.to_string(),
-            },
+            auth_parameters: Some(auth_parameters),
+            client_metadata: None,
+            user_pool_id: self.client_id.clone(), // TODO fix it
         };
 
         let response = self
             .client
             .post(&self.base_url)
-            .header(KEY, AWS_COGNITO_IDENTITY_PROVIDER_SERVICE_ADMIN_INITIATE_AUTH)
+            .header(
+                KEY,
+                AWS_COGNITO_IDENTITY_PROVIDER_SERVICE_ADMIN_INITIATE_AUTH,
+            )
             .header(reqwest::header::CONTENT_TYPE, CONTENT_TYPE)
             .json(&payload)
             .send()?;
 
         if response.status().is_success() {
-            let data: AuthResponse = response.json()?;
-            Ok(data.access_token)
+            let data: AdminInitiateAuthResponse = response.json()?;
+            Ok(data)
         } else {
             Err(MINTError::from_response(response))
         }
