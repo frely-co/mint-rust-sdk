@@ -1,7 +1,7 @@
 use reqwest::blocking::Client;
 use thiserror::Error;
 
-use crate::models::SignUpRequest;
+use crate::models::{AuthParameters, AuthRequest, AuthResponse, SignUpRequest};
 
 /// CognitoClient for interacting with the Cognito mock API.
 pub struct CognitoClient {
