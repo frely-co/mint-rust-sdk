@@ -1,5 +1,6 @@
 use reqwest::blocking::Client;
 use thiserror::Error;
+use std::collections::HashMap;
 
 use crate::models::{
     AdminInitiateAuthRequest, AdminInitiateAuthResponse, SignUpRequest, SignUpResponse
@@ -63,8 +64,7 @@ impl CognitoClient {
             .send()?;
 
         if response.status().is_success() {
-            let data: SignUpResponse = response.json()?;
-            Ok(data)
+            Ok(response.json()?)
         } else {
             Err(MINTError::from_response(response))
         }
@@ -72,9 +72,10 @@ impl CognitoClient {
 
     /// Authenticate a user.
     pub fn admin_initiate_auth(&self, username: &str, password: &str) -> Result<AdminInitiateAuthResponse, MINTError> {
-        let mut auth_parameters = ::std::collections::HashMap::new();
-        auth_parameters.insert("USERNAME".to_string(), username.to_string());
-        auth_parameters.insert("PASSWORD".to_string(), password.to_string());
+        let auth_parameters = HashMap::from([
+            ("USERNAME".to_string(), username.to_string()),
+            ("PASSWORD".to_string(), password.to_string()),
+        ]);
 
         let payload = AdminInitiateAuthRequest {
             client_id: self.client_id.clone(),
@@ -87,17 +88,13 @@ impl CognitoClient {
         let response = self
             .client
             .post(&self.base_url)
-            .header(
-                KEY,
-                AWS_COGNITO_IDENTITY_PROVIDER_SERVICE_ADMIN_INITIATE_AUTH,
-            )
+            .header(KEY, AWS_COGNITO_IDENTITY_PROVIDER_SERVICE_ADMIN_INITIATE_AUTH)
             .header(reqwest::header::CONTENT_TYPE, CONTENT_TYPE)
             .json(&payload)
             .send()?;
 
         if response.status().is_success() {
-            let data: AdminInitiateAuthResponse = response.json()?;
-            Ok(data)
+            Ok(response.json()?)
         } else {
             Err(MINTError::from_response(response))
         }

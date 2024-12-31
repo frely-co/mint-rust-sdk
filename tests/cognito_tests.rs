@@ -1,5 +1,4 @@
 #[cfg(test)]
-#[cfg(test)]
 mod tests {
     use mint_rust_sdk::{
         client::MintClient, models::{SignUpResponse, AdminInitiateAuthResponse}, utils::random_utility::RandomUtils,
