@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+
 /// Request payload for SignUp.
 #[derive(Serialize, Deserialize)]
 pub struct SignUpRequest {
