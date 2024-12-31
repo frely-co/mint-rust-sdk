@@ -1,11 +1,12 @@
 use reqwest::blocking::Client;
 use thiserror::Error;
 
-use crate::models::{AuthParameters, AuthRequest, AuthResponse, SignUpRequest};
+use crate::models::{AuthParameters, AuthRequest, AuthResponse, SignUpRequest, SignUpResponse};
 
 /// CognitoClient for interacting with the Cognito mock API.
 pub struct CognitoClient {
     base_url: String,
+    client_id: String,
     client: Client,
 }
 
@@ -35,16 +36,18 @@ impl MINTError {
 }
 
 impl CognitoClient {
-    pub fn new(base_url: &str) -> Self {
+    pub fn new(base_url: &str, client_id: &str) -> Self {
         Self {
             base_url: base_url.to_string(),
+            client_id: client_id.to_string(),
             client: Client::new(),
         }
     }
 
     /// Sign up a new user.
-    pub fn sign_up(&self, username: &str, password: &str) -> Result<(), MINTError> {
+    pub fn sign_up(&self, username: &str, password: &str) -> Result<SignUpResponse, MINTError> {
         let payload = SignUpRequest {
+            client_id: self.client_id.clone(),
             username: username.to_string(),
             password: password.to_string(),
         };
@@ -58,7 +61,8 @@ impl CognitoClient {
             .send()?;
 
         if response.status().is_success() {
-            Ok(())
+            let data: SignUpResponse = response.json()?;
+            Ok(data)
         } else {
             Err(MINTError::from_response(response))
         }
@@ -67,6 +71,7 @@ impl CognitoClient {
     /// Authenticate a user.
     pub fn authenticate(&self, username: &str, password: &str) -> Result<String, MINTError> {
         let payload = AuthRequest {
+            client_id: self.client_id.clone(),
             auth_flow: "USER_PASSWORD_AUTH".to_string(),
             auth_parameters: AuthParameters {
                 username: username.to_string(),
