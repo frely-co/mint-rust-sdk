@@ -10,6 +10,7 @@ pub struct CognitoClient {
 }
 
 const KEY: &str = "X-Amz-Target";
+const CONTENT_TYPE: &str = "application/x-amz-json-1.1";
 
 const AWS_COGNITO_IDENTITY_PROVIDER_SERVICE_SIGNUP: &str =
     "AWSCognitoIdentityProviderService.SignUp";
@@ -52,6 +53,7 @@ impl CognitoClient {
             .client
             .post(&self.base_url)
             .header(KEY, AWS_COGNITO_IDENTITY_PROVIDER_SERVICE_SIGNUP)
+            .header(reqwest::header::CONTENT_TYPE, CONTENT_TYPE)
             .json(&payload)
             .send()?;
 
@@ -76,6 +78,7 @@ impl CognitoClient {
             .client
             .post(&self.base_url)
             .header(KEY, AWS_COGNITO_IDENTITY_PROVIDER_SERVICE_ADMIN_INITIATE_AUTH)
+            .header(reqwest::header::CONTENT_TYPE, CONTENT_TYPE)
             .json(&payload)
             .send()?;
 
@@ -87,4 +90,3 @@ impl CognitoClient {
         }
     }
 }
-
